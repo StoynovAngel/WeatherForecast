@@ -1,12 +1,18 @@
 import React from "react";
 import "../pages/Navigation.css";
-const Navigation = ({ searchTerm, setSearchTerm, onSearch, logo }) => {
+import HourManager from "../handle/HourManager";
+const Navigation = ({ searchTerm, setSearchTerm, onSearch, logo, weather }) => {
   return (
     <>
       <div className="navbar">
         <div className="nav-container">
           <img src={logo} alt="logo" />
-          <h1 className="navbar-title">Weather Forecast</h1>
+          <div>
+            <h1 className="navbar-title">Weather Forecast</h1>
+            <h1 className="navbar-title">
+              <HourManager weather={weather} />
+            </h1>
+          </div>
         </div>
         <form onSubmit={onSearch}>
           <input

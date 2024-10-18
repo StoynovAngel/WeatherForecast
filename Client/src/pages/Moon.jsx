@@ -1,11 +1,13 @@
 import React from "react";
+import { useMoonContext } from "../context/MoonContext";
 
-const Moon = ({ src, moon, phase }) => {
+const Moon = ({ src, phase }) => {
+  const { moon_phase } = useMoonContext();
   return (
     <>
       <img
         src={src}
-        className={moon.moon_phase === phase ? "highlighted-phase" : ""}
+        className={moon_phase === phase ? "highlighted-phase" : ""}
         alt={phase}
       />
     </>

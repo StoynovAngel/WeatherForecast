@@ -2,22 +2,25 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "../pages/Home.css";
 import Navigation from "./Navigation";
-import Moon from "./Moon";
+import Background from "../handle/Background";
+import MoonPhases from "../handle/MoonPhases";
+import { MoonProvider } from "../context/MoonContext";
+import DateManager from "../handle/DateManager";
+
 const Home = () => {
   const [location, setLocation] = useState("Sofia");
   const [weather, setWeather] = useState(null);
   const [moon, setMoon] = useState(null);
   const [searchTerm, setSearchTerm] = useState(location);
-  const [language, setLanguage] = useState("eu");
 
   useEffect(() => {
     fetchData(location);
-  }, [location, language]);
+  }, [location]);
 
   const fetchData = async (query) => {
     const apiKey = import.meta.env.VITE_API_URL;
 
-    const weatherUrl = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${query}&aqi=yes&lang=${language}`;
+    const weatherUrl = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${query}&aqi=yes`;
     const astronomyUrl = `https://api.weatherapi.com/v1/astronomy.json?key=${apiKey}&q=${query}`;
     try {
       const weatherResponse = await axios.get(weatherUrl);
@@ -35,82 +38,24 @@ const Home = () => {
     setLocation(searchTerm);
   };
 
-  const setBackground = () => {
-    if (!weather) return null;
-    const condition = weather.current.condition.text.toLowerCase();
-    if (weather.current.is_day == 1) {
-      if (condition.includes("sunny")) return "./src/assets/sunny.jpg";
-      if (condition.includes("rain")) return "./src/assets/rainy.jpg";
-      if (condition.includes("thunder")) return "./src/assets/stormy.jpg";
-      if (condition.includes("cloudy")) return "./src/assets/cloudy.jpg";
-    } else {
-      if (condition.includes("clear")) return "./src/assets/night-clear.jpg";
-      if (condition.includes("cloudy")) return "./src/assets/night-cloud.jpg";
-      if (condition.includes("overcast")) return "./src/assets/overcast.jpg";
-      if (condition.includes("thunder")) return "./src/assets/stormy.jpg";
-    }
-    return "./src/assets/default.jpg";
-  };
-
-  const setContinent = () => {
-    if (!weather) return null;
-    const condition = weather.location.tz_id.toLowerCase();
-    if (condition.includes("europe")) return "./src/assets/europe.svg";
-    if (condition.includes("asia")) return "./src/assets/asia.svg";
-    if (condition.includes("thunder")) return "./src/assets/stormy.jpg";
-    if (condition.includes("cloudy")) return "./src/assets/cloudy.jpg";
-  };
-
-  const moonPhases = [
-    { phase: "New Moon", src: "./src/assets/moonphase1.svg" },
-    { phase: "Waxing Crescent", src: "./src/assets/moonphase2.svg" },
-    { phase: "First Quarter", src: "./src/assets/moonphase3.svg" },
-    { phase: "Waxing Gibbous", src: "./src/assets/moonphase4.svg" },
-    { phase: "Full Moon", src: "./src/assets/moonphase5.svg" },
-    { phase: "Waning Gibbous", src: "./src/assets/moonphase6.svg" },
-    { phase: "Last Quarter", src: "./src/assets/moonphase7.svg" },
-    { phase: "Waning Crescent", src: "./src/assets/moonphase8.svg" },
-  ];
-
-  const dateHandler = () => {
-    if (!weather) return null;
-    const date = new Date(weather.location.localtime);
-    const options = { day: "numeric", month: "long", year: "numeric" };
-    const formattedDate = date.toLocaleDateString("en-US", options);
-    return formattedDate;
-  };
-
   return (
     <>
       {weather && (
         <>
-          <div className="img-background">
-            <div
-              className="img-background"
-              style={{
-                backgroundImage: `url(${setBackground()})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat",
-                height: "100vh",
-                width: "100%",
-              }}
-            ></div>
-          </div>
+          <Background weather={weather} />
           <div className="container-nav">
             <Navigation
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
               onSearch={handleSearch}
               logo={weather.current.condition.icon}
+              weather={weather}
             />
-            <h1 style={{ color: "white" }}>{dateHandler()}</h1>
           </div>
           <div className="container">
             <div className="left-column">
               <div className="header-row">
                 <h1>{weather.current.condition.text}</h1>
-                <img src={weather.current.condition.icon} />
               </div>
 
               <div className="temperature-row">
@@ -129,36 +74,19 @@ const Home = () => {
                 <p>Visibility: {weather.current.vis_km} km</p>
                 <p>Cloud: {weather.current.cloud}</p>
               </div>
-              <div
-                style={{
-                  backgroundImage: `url(${setContinent()})`,
-                  height: "300px",
-                  margin: "40px",
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  backgroundRepeat: "no-repeat",
-                }}
-              ></div>
             </div>
-            {moon && (
-              <div className="middle-space">
-                <div className="moon-phases">
-                  <h2>Moon Phases:</h2>
-                  <div className="moon-phase-container">
-                    {moonPhases.map((p) => {
-                      return (
-                        <Moon
-                          key={p.phase}
-                          src={p.src}
-                          moon={moon.moon_phase}
-                          phase={moon.moon_phase}
-                        />
-                      );
-                    })}
+            <div className="middle-space">
+              {!moon.is_moon_up && (
+                <MoonProvider moon_phase={moon.moon_phase}>
+                  <div className="moon-phases">
+                    <h2>Moon Phases:</h2>
+                    <div className="moon-phase-container">
+                      <MoonPhases />
+                    </div>
                   </div>
-                </div>
-              </div>
-            )}
+                </MoonProvider>
+              )}
+            </div>
             <div className="right-column">
               <h1>{weather.current.temp_c}&deg; C</h1>
               <h3>-{weather.location.tz_id}</h3>
