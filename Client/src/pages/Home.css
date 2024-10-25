@@ -37,6 +37,13 @@ h1 {
   align-items: center;
   z-index: 100;
 }
+@media (max-width: 480px) {
+  .container-nav {
+    width: 100%;
+    height: auto;
+    z-index: 100;
+  }
+}
 
 .container-nav input {
   padding: 8px;
